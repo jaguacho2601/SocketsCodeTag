@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="Scripts/jquery-1.6.4.min.js"></script>
+    <script src="Scripts/jquery.signalR-0.5.2.min.js"></script>
+    <script src="/signalr/hubs" type="text/javascript"></script>
+    <script src="Scripts/canvasjs.min.js"></script>
+    <script src="Scripts/StockTicker.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            var dps = [];
+            var chart = new CanvasJS.Chart("chartContainer", {
+                title: {
+                    text: "SOCKET NUMBERS - CODETAG"
+                },
+                data: [{
+                    type: "line",
+                    dataPoints: dps
+                }]
+            });
+
+            var xVal = 0;
+            var yVal = 100;
+            var updateInterval = 20;
+            var dataLength = 800;
+            var connection = $.connection.mensajesHub;
+           
+            $.connection.hub.start().done(function () {
+                console.info("$.connection.hub.start().done");
+                connection.openSocket();    
+                connection.recibirMensaje("");
+            });
+
+            connection.recibir = function(point) {
+                $("#Numbers").val( $("#Numbers").val() +"\n ==>"+ point);
+                yVal = parseInt(point);
+                dps.push({
+                    x: xVal,
+                    y: yVal
+                });
+                xVal++;
+
+                if (dps.length > dataLength) {
+                    dps.shift();
+                }
+                chart.render();
+                window.updateChart(dataLength);
+                setInterval(function () { window.updateChart(); }, updateInterval);
+
+            };
+
+        });
+            $(document).ready(function () {
+                console.log("ready!");
+            });
+    </script>
+   
+    <style type="text/css">
+        #Numbers {
+            height: 139px;
+        }
+    </style>
+   
+</head>
+<body >
+    <div id="chartContainer" style="height: 400px; width: 85%;">
+    </div>
+    <textarea id="Numbers" cols="20"></textarea>
+</body>
+</html>
